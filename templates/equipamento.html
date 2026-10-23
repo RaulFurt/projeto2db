@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}{{ e.patrimonio }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('equipamentos') }}">&larr; Equipamentos</a></p>
+<div class="page-head">
+  <h1>{{ e.patrimonio }} · {{ e.nome }} {{ e.marca }} {{ e.modelo or '' }}</h1>
+  <span class="badge big s-{{ e.status|replace(' ', '-')|lower }}">{{ e.status }}</span>
+</div>
+
+<div class="grid2">
+  <section class="card">
+    <h2>Dados</h2>
+    <dl class="props">
+      <dt>Nº de série</dt><dd>{{ e.numero_serie }}</dd>
+      <dt>Categoria</dt><dd>{{ e.categoria }}</dd>
+      <dt>Setor</dt><dd>{{ e.setor }} <span class="muted">({{ e.bloco }}, sala {{ e.sala }})</span></dd>
+      <dt>Fornecedor</dt><dd>{{ e.fornecedor }}</dd>
+      <dt>Aquisição</dt><dd>{{ e.data_aquisicao|data }}</dd>
+      <dt>Garantia até</dt><dd>{{ e.data_fim_garantia|data }}
+        {% if e.em_garantia %}<span class="badge s-disponivel">vigente</span>{% else %}<span class="badge s-descartado">vencida</span>{% endif %}</dd>
+      <dt>Tempo de uso</dt><dd>{{ e.tempo_uso_meses|meses }} <span class="muted">de {{ e.vida_util_meses|meses }} de vida útil</span></dd>
+      <dt>Valor de compra</dt><dd>{{ e.valor|brl }}</dd>
+      <dt>Valor atual</dt><dd>{{ e.valor_atual|brl }}</dd>
+      <dt>Gasto em manutenção</dt><dd>{{ e.custo_manutencao|brl }}
+        <span class="muted">({{ (100 * e.custo_manutencao / e.valor)|round(1) if e.valor else 0 }}% do valor)</span></dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>Operações</h2>
+    {% set aberto = historico|selectattr('data_devolucao', 'none')|list|first %}
+    {% if aberto %}
+      <p>Em posse de <strong>{{ aberto.nome }}</strong> (mat. {{ aberto.matricula }}) desde {{ aberto.data_retirada|data }}.</p>
+      <form class="inline" method="post" action="{{ url_for('devolver', patrimonio=e.patrimonio) }}">
+        <label>Devolução <input type="date" name="data_devolucao" value="{{ hoje }}" required></label>
+        <button class="btn">Registrar devolução</button>
+      </form>
+    {% endif %}
+    <form class="inline" method="post" action="{{ url_for('acautelar', patrimonio=e.patrimonio) }}">
+      <label>Acautelar para
+        <select name="matricula" required>
+          {% for f in funcionarios %}<option value="{{ f.matricula }}">{{ f.matricula }} · {{ f.nome }}</option>{% endfor %}
+        </select></label>
+      <label>Retirada <input type="date" name="data_retirada" value="{{ hoje }}" required></label>
+      <button class="btn">Acautelar</button>
+    </form>
+    <form class="inline" method="post" action="{{ url_for('transferir', patrimonio=e.patrimonio) }}">
+      <label>Transferir para
+        <select name="id_setor">
+          {% for s in setores %}<option value="{{ s.id_setor }}" {{ 'selected' if s.nome == e.setor }}>{{ s.nome }} ({{ s.bloco }} {{ s.sala }})</option>{% endfor %}
+        </select></label>
+      <button class="btn secondary">Transferir</button>
+    </form>
+    <form class="inline" method="post" action="{{ url_for('alterar_status', patrimonio=e.patrimonio) }}">
+      <label>Status
+        <select name="status">
+          {% for s in STATUS %}<option {{ 'selected' if s == e.status }}>{{ s }}</option>{% endfor %}
+        </select></label>
+      <button class="btn secondary">Alterar</button>
+    </form>
+    <form class="inline" method="post" action="{{ url_for('excluir', patrimonio=e.patrimonio) }}"
+          onsubmit="return confirm('Excluir o equipamento e, em cascata, suas manutenções e acautelamentos?')">
+      <button class="btn danger">Excluir equipamento</button>
+    </form>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Histórico de acautelamento</h2>
+  <table>
+    <tr><th>#</th><th>Matrícula</th><th>Funcionário</th><th>Retirada</th><th>Devolução</th><th class="num">Dias</th></tr>
+    {% for h in historico %}
+    <tr><td class="muted">{{ h.id_acautelamento }}</td><td>{{ h.matricula }}</td><td>{{ h.nome }} <span class="muted">{{ h.cargo }}</span></td>
+        <td>{{ h.data_retirada|data }}</td>
+        <td>{% if h.data_devolucao %}{{ h.data_devolucao|data }}{% else %}<span class="badge s-em-uso">em posse</span>{% endif %}</td>
+        <td class="num">{{ h.dias }}</td></tr>
+    {% else %}
+    <tr><td colspan="6" class="muted">Nunca foi acautelado.</td></tr>
+    {% endfor %}
+  </table>
+</section>
+
+<section class="card">
+  <h2>Manutenções <span class="muted">(entidade fraca: chave = patrimônio + seq)</span></h2>
+  <table>
+    <tr><th>Seq</th><th>Data</th><th>Tipo</th><th>Descrição</th><th class="num">Custo</th></tr>
+    {% for m in manutencoes %}
+    <tr><td>{{ m.seq }}</td><td>{{ m.data|data }}</td><td>{{ m.tipo }}</td><td>{{ m.descricao }}</td><td class="num">{{ m.custo|brl }}</td></tr>
+    {% else %}
+    <tr><td colspan="5" class="muted">Nenhuma manutenção registrada.</td></tr>
+    {% endfor %}
+  </table>
+  <form class="inline" method="post" action="{{ url_for('registrar_manutencao', patrimonio=e.patrimonio) }}">
+    <label>Data <input type="date" name="data" value="{{ hoje }}" required></label>
+    <label>Tipo <select name="tipo">{% for t in tipos %}<option>{{ t }}</option>{% endfor %}</select></label>
+    <label class="grow">Descrição <input name="descricao" required></label>
+    <label>Custo <input type="number" name="custo" step="0.01" min="0" value="0"></label>
+    <button class="btn">Registrar manutenção</button>
+  </form>
+</section>
+{% endblock %}

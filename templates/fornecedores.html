@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Fornecedores{% endblock %}
+{% block content %}
+<h1>Fornecedores</h1>
+<section class="card flush">
+  <table>
+    <tr><th>CNPJ</th><th>Razão social</th><th>E-mail</th><th>Telefones <span class="muted">(multivalorado)</span></th>
+        <th class="num">Equipamentos</th><th class="num">Valor fornecido</th></tr>
+    {% for f in itens %}
+    <tr>
+      <td>{{ f.cnpj|cnpj }}</td><td>{{ f.razao_social }}</td><td>{{ f.email or '-' }}</td>
+      <td>{% for t in telefones.get(f.cnpj, []) %}<div><span class="badge">{{ t.tipo }}</span> {{ t.telefone }}</div>{% endfor %}</td>
+      <td class="num">{{ f.qtd }}</td><td class="num">{{ f.valor|brl }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}

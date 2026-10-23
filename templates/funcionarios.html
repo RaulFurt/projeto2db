@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Funcionários{% endblock %}
+{% block content %}
+<h1>Funcionários</h1>
+<section class="card flush">
+  <table>
+    <tr><th>Matrícula</th><th>Nome</th><th>Cargo</th><th>Lotação</th><th>Situação</th>
+        <th class="num">Acautelamentos</th><th>Em posse agora</th></tr>
+    {% for f in itens %}
+    <tr>
+      <td>{{ f.matricula }}</td><td>{{ f.nome }}</td><td>{{ f.cargo }}</td>
+      <td>{{ f.setor }} <span class="muted">{{ f.bloco }}</span></td>
+      <td>{% if f.ativo %}<span class="badge s-disponivel">ativo</span>{% else %}<span class="badge s-descartado">desligado</span>{% endif %}</td>
+      <td class="num">{{ f.total_acaut }}</td>
+      <td {% if not f.ativo and f.em_posse %}class="warn-text"{% endif %}>{{ f.em_posse or '-' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}

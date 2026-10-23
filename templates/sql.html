@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Console SQL{% endblock %}
+{% block content %}
+<h1>Console SQL</h1>
+<p class="muted">Conexão somente leitura: escreva qualquer <code>SELECT</code>. Comandos de escrita são recusados pelo PostgreSQL.</p>
+
+<div class="grid-sql">
+  <form method="post" class="card">
+    <textarea name="sql" rows="10" spellcheck="false">{{ sql }}</textarea>
+    <button class="btn">Executar</button>
+  </form>
+  <aside class="card">
+    <h2>Tabelas e views</h2>
+    <ul class="plain">
+      {% for t in tabelas %}<li><code>{{ t.name }}</code> <span class="muted small">{{ t.type }}</span></li>{% endfor %}
+    </ul>
+  </aside>
+</div>
+
+{% if resultado %}
+<section class="card">
+  {% if resultado[2] %}
+    <div class="flash error">{{ resultado[2] }}</div>
+  {% else %}
+    {% set c = {'colunas': resultado[0], 'linhas': resultado[1]} %}
+    {% include "_tabela.html" %}
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

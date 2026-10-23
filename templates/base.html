@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Patrimônio{% endblock %} · Controle de Patrimônio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('dashboard') }}">Controle de Patrimônio</a>
+    <nav>
+      {% set ep = request.endpoint %}
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if ep == 'dashboard' }}">Painel</a>
+      <a href="{{ url_for('equipamentos') }}" class="{{ 'active' if ep and ep.startswith('equipamento') }}">Equipamentos</a>
+      <a href="{{ url_for('funcionarios') }}" class="{{ 'active' if ep == 'funcionarios' }}">Funcionários</a>
+      <a href="{{ url_for('fornecedores') }}" class="{{ 'active' if ep == 'fornecedores' }}">Fornecedores</a>
+      <a href="{{ url_for('consultas') }}" class="{{ 'active' if ep == 'consultas' }}">Consultas</a>
+      <a href="{{ url_for('console_sql') }}" class="{{ 'active' if ep == 'console_sql' }}">Console SQL</a>
+    </nav>
+  </header>
+
+  <main>
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in msgs %}
+        {% if cat == 'sql' %}
+          <pre class="flash sql"><span class="label">SQL executado</span>{{ msg }}</pre>
+        {% else %}
+          <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endif %}
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <form method="post" action="{{ url_for('reset') }}"
+          onsubmit="return confirm('Recriar o banco com os dados originais?')">
+      PostgreSQL · <button class="link">recriar banco</button>
+    </form>
+  </footer>
+</body>
+</html>

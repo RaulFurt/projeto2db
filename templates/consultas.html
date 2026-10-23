@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Consultas{% endblock %}
+{% block content %}
+<h1>Consultas de exemplo</h1>
+<p class="muted">Lidas e executadas a partir de <code>sql/03_consultas.sql</code>.</p>
+
+<nav class="toc">
+  {% for c in consultas %}<a href="#q{{ loop.index }}">{{ c.titulo }}</a>{% endfor %}
+</nav>
+
+{% for c in consultas %}
+<section class="card" id="q{{ loop.index }}">
+  <h2>{{ c.titulo }}</h2>
+  {% if c.descricao %}<p class="muted">{{ c.descricao }}</p>{% endif %}
+  <details>
+    <summary>Ver SQL</summary>
+    <pre class="sql-preview">{{ c.sql }}</pre>
+  </details>
+  {% if c.erro %}
+    <div class="flash error">{{ c.erro }}</div>
+  {% else %}
+    {% include "_tabela.html" %}
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

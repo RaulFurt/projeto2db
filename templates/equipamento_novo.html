@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Novo equipamento{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('equipamentos') }}">&larr; Equipamentos</a></p>
+<h1>Novo equipamento</h1>
+
+<form class="card form-grid" method="post">
+  <label>Patrimônio <input type="number" name="patrimonio" value="{{ form.patrimonio or proximo }}" required></label>
+  <label>Nome <input name="nome" value="{{ form.nome }}" placeholder="Notebook" required></label>
+  <label>Marca <input name="marca" value="{{ form.marca }}" required></label>
+  <label>Modelo <input name="modelo" value="{{ form.modelo }}"></label>
+  <label>Nº de série <input name="numero_serie" value="{{ form.numero_serie }}" required></label>
+  <label>Data de aquisição <input type="date" name="data_aquisicao" value="{{ form.data_aquisicao or hoje }}" required></label>
+  <label>Valor (R$) <input type="number" step="0.01" name="valor" value="{{ form.valor }}" required></label>
+  <label>Fim da garantia <input type="date" name="data_fim_garantia" value="{{ form.data_fim_garantia }}"></label>
+  <label>Categoria
+    <select name="id_categoria">
+      {% for c in categorias %}<option value="{{ c.id_categoria }}" {{ 'selected' if form.id_categoria == c.id_categoria|string }}>{{ c.nome }}</option>{% endfor %}
+    </select></label>
+  <label>Setor
+    <select name="id_setor">
+      {% for s in setores %}<option value="{{ s.id_setor }}" {{ 'selected' if form.id_setor == s.id_setor|string }}>{{ s.nome }} ({{ s.bloco }} {{ s.sala }})</option>{% endfor %}
+    </select></label>
+  <label class="span2">Fornecedor
+    <select name="cnpj_fornecedor">
+      {% for f in fornecedores %}<option value="{{ f.cnpj }}" {{ 'selected' if form.cnpj_fornecedor == f.cnpj }}>{{ f.razao_social }} · {{ f.cnpj|cnpj }}</option>{% endfor %}
+    </select></label>
+  <div class="span2"><button class="btn">Cadastrar</button></div>
+</form>
+{% endblock %}

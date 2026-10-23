@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Equipamentos{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Equipamentos</h1>
+  <a class="btn" href="{{ url_for('equipamento_novo') }}">+ Novo equipamento</a>
+</div>
+
+<form class="filters" method="get">
+  <input type="search" name="q" value="{{ filtros.q }}" placeholder="Buscar patrimônio, nome, marca, modelo, nº série">
+  <select name="categoria">
+    <option value="">Todas as categorias</option>
+    {% for c in categorias %}<option {{ 'selected' if filtros.categoria == c }}>{{ c }}</option>{% endfor %}
+  </select>
+  <select name="bloco">
+    <option value="">Todos os blocos</option>
+    {% for b in blocos %}<option {{ 'selected' if filtros.bloco == b }}>{{ b }}</option>{% endfor %}
+  </select>
+  <select name="status">
+    <option value="">Todos os status</option>
+    {% for s in STATUS %}<option {{ 'selected' if filtros.status == s }}>{{ s }}</option>{% endfor %}
+  </select>
+  <button class="btn">Filtrar</button>
+  <a href="{{ url_for('equipamentos') }}">limpar</a>
+</form>
+
+<pre class="sql-preview">{{ sql }}</pre>
+
+<section class="card flush">
+  <table>
+    <tr><th>Patrimônio</th><th>Equipamento</th><th>Categoria</th><th>Setor</th><th>Local</th>
+        <th>Status</th><th>Tempo de uso</th><th class="num">Valor</th><th class="num">Valor atual</th></tr>
+    {% for e in itens %}
+    <tr>
+      <td><a href="{{ url_for('equipamento', patrimonio=e.patrimonio) }}">{{ e.patrimonio }}</a></td>
+      <td>{{ e.nome }} <span class="muted">{{ e.marca }} {{ e.modelo or '' }}</span></td>
+      <td>{{ e.categoria }}</td>
+      <td>{{ e.setor }}</td>
+      <td class="muted">{{ e.bloco }} · sala {{ e.sala }}</td>
+      <td><span class="badge s-{{ e.status|replace(' ', '-')|lower }}">{{ e.status }}</span></td>
+      <td {% if e.tempo_uso_meses >= e.vida_util_meses %}class="warn-text"{% endif %}>{{ e.tempo_uso_meses|meses }}</td>
+      <td class="num">{{ e.valor|brl }}</td>
+      <td class="num">{{ e.valor_atual|brl }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="9" class="muted">Nenhum equipamento encontrado.</td></tr>
+    {% endfor %}
+  </table>
+</section>
+<p class="muted">{{ itens|length }} equipamento(s)</p>
+{% endblock %}

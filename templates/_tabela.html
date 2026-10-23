@@ -1,0 +1,11 @@
+<div class="scroll">
+  <table>
+    <tr>{% for col in c.colunas %}<th>{{ col }}</th>{% endfor %}</tr>
+    {% for row in c.linhas %}
+    <tr>{% for v in row %}<td class="{{ 'num' if v is number }}">{{ '' if v is none else v }}</td>{% endfor %}</tr>
+    {% else %}
+    <tr><td colspan="{{ c.colunas|length or 1 }}" class="muted">Nenhuma linha.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+<p class="muted small">{{ c.linhas|length }} linha(s)</p>

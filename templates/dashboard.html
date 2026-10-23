@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Painel{% endblock %}
+{% block content %}
+<h1>Painel do patrimônio</h1>
+
+<section class="kpis">
+  <div class="kpi"><span>Equipamentos ativos</span><strong>{{ r.total }}</strong>
+    <small>{{ r.em_uso }} em uso · {{ r.disponiveis }} disponíveis · {{ r.em_manutencao }} em manutenção</small></div>
+  <div class="kpi"><span>Valor de compra</span><strong>{{ r.valor_compra|brl }}</strong></div>
+  <div class="kpi"><span>Valor atual (depreciado)</span><strong>{{ r.valor_atual|brl }}</strong>
+    <small>depreciação linear pela vida útil da categoria</small></div>
+  <div class="kpi"><span>Gasto com manutenção</span><strong>{{ custo_manut|brl }}</strong></div>
+  <div class="kpi warn"><span>Vida útil esgotada</span><strong>{{ r.vencidos }}</strong>
+    <small>candidatos a substituição</small></div>
+</section>
+
+{% if alertas %}
+<section class="card alert">
+  <h2>Auditoria: funcionário desligado com equipamento</h2>
+  <table>
+    <tr><th>Matrícula</th><th>Funcionário</th><th>Equipamento</th><th>Retirado em</th></tr>
+    {% for a in alertas %}
+    <tr><td>{{ a.matricula }}</td><td>{{ a.nome }}</td>
+        <td><a href="{{ url_for('equipamento', patrimonio=a.patrimonio) }}">{{ a.patrimonio }}</a> · {{ a.equipamento }} {{ a.modelo }}</td>
+        <td>{{ a.data_retirada|data }}</td></tr>
+    {% endfor %}
+  </table>
+</section>
+{% endif %}
+
+<div class="grid2">
+  <section class="card">
+    <h2>Valor por categoria</h2>
+    {% for c in por_categoria %}
+    <div class="bar-row">
+      <span class="bar-label">{{ c.categoria }} <small>({{ c.qtd }})</small></span>
+      <span class="bar"><span style="width: {{ (100 * c.valor / max_valor)|round(1) }}%"></span></span>
+      <span class="bar-value">{{ c.valor|brl }}</span>
+    </div>
+    {% endfor %}
+  </section>
+
+  <section class="card">
+    <h2>Garantias vencendo (180 dias)</h2>
+    {% if garantias %}
+    <table>
+      <tr><th>Patrimônio</th><th>Equipamento</th><th>Fim</th><th class="num">Dias</th></tr>
+      {% for gq in garantias %}
+      <tr><td><a href="{{ url_for('equipamento', patrimonio=gq.patrimonio) }}">{{ gq.patrimonio }}</a></td>
+          <td>{{ gq.nome }} {{ gq.marca }} {{ gq.modelo }}</td>
+          <td>{{ gq.data_fim_garantia|data }}</td><td class="num">{{ gq.dias }}</td></tr>
+      {% endfor %}
+    </table>
+    {% else %}<p class="muted">Nenhuma garantia vence nos próximos 180 dias.</p>{% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <h2>Candidatos a substituição</h2>
+  <table>
+    <tr><th>Patrimônio</th><th>Equipamento</th><th>Tempo de uso</th><th>Vida útil</th>
+        <th class="num">Manutenção</th><th class="num">Valor de compra</th></tr>
+    {% for s in substituir %}
+    <tr><td><a href="{{ url_for('equipamento', patrimonio=s.patrimonio) }}">{{ s.patrimonio }}</a></td>
+        <td>{{ s.nome }} {{ s.marca }} {{ s.modelo }}</td>
+        <td>{{ s.tempo_uso_meses|meses }}</td><td>{{ s.vida_util_meses|meses }}</td>
+        <td class="num">{{ s.custo_manutencao|brl }}</td><td class="num">{{ s.valor|brl }}</td></tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}
